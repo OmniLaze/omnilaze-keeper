@@ -61,7 +61,7 @@ actor LinkPreviewService {
             return nil
         }
         do {
-            let image = try await loadImage(from: provider)
+            let image = try await provider.loadObject(ofClass: UIImage.self) as! UIImage
             guard let data = image.jpegData(compressionQuality: 0.9) else {
                 return nil
             }
@@ -71,21 +71,4 @@ actor LinkPreviewService {
         }
     }
 
-    private func loadImage(from provider: NSItemProvider) async throws -> UIImage {
-        try await withCheckedThrowingContinuation { continuation in
-            provider.loadObject(ofClass: UIImage.self) { object, error in
-                if let error {
-                    continuation.resume(throwing: error)
-                } else if let image = object as? UIImage {
-                    continuation.resume(returning: image)
-                } else {
-                    continuation.resume(throwing: NSError(
-                        domain: "LinkPreviewService",
-                        code: -1,
-                        userInfo: [NSLocalizedDescriptionKey: "Failed to load preview image"]
-                    ))
-                }
-            }
-        }
-    }
 }
